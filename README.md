@@ -13,6 +13,12 @@ Deployer IDE is an intuitive interface for interacting with **Ethereum** and **B
 provides tools for compiling, deploying, and managing smart contracts across multiple networks, all from a single
 interface.
 
+<video width="720" height="400" controls>
+  <source src="https://github.com/oadfade/DeployerIDE-ERC20-Toolkit/raw/main/.github/workflows/DeployerIDE.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+
 ---
 
 ## 🗂 Application Structure
