@@ -344,6 +344,52 @@ class ContractInterfaceApp:
             self.update_log(f"Failed to connect to {network_name}. Check your network settings and try again.",
                             level='error')
 
+    def get_constructor_args_dialog(self, abi):
+        constructor = next((item for item in abi if item.get('type') == 'constructor'), None)
+        args = []
+        if constructor and constructor.get('inputs'):
+            dialog = Toplevel(self.root)
+            dialog.title("Enter Constructor Parameters")
+            dialog.configure(bg='#1e1e1e')
+            dialog.grab_set()
+
+            input_frame = Frame(dialog, bg='#1e1e1e')
+            input_frame.pack(padx=10, pady=10)
+
+            entries = []
+            for param in constructor['inputs']:
+                param_label = Label(input_frame, text=f"{param['name']} ({param['type']}):", bg='#1e1e1e', fg='white')
+                param_label.pack(anchor='w')
+                entry = Entry(input_frame, width=40)
+                entry.pack(pady=5)
+                entries.append((param, entry))
+
+            def on_ok():
+                try:
+                    for param, entry in entries:
+                        user_input = entry.get()
+                        parsed_input = self.parse_input(user_input, param['type'])
+                        args.append(parsed_input)
+                except Exception as e:
+                    messagebox.showerror("Error", f"Error parsing input: {e}")
+                finally:
+                    dialog.destroy()
+
+            button_frame = Frame(dialog, bg='#1e1e1e')
+            button_frame.pack(pady=10)
+
+            ok_button = Button(button_frame, text="OK", command=on_ok, bg='green', fg='white', font=('Arial', 10, 'bold'))
+            ok_button.pack(side=LEFT, padx=5)
+
+            cancel_button = Button(button_frame, text="Cancel", command=dialog.destroy, bg='red', fg='white', font=('Arial', 10, 'bold'))
+            cancel_button.pack(side=LEFT, padx=5)
+
+            self.root.wait_window(dialog)
+
+        return args
+
+
+
     def convert_seed_to_private_key(self):
         seed_phrase = self.seed_phrase_entry.get().strip()
         if not seed_phrase:
@@ -1586,7 +1632,8 @@ class ContractInterfaceApp:
 
             self.abi = abi
 
-            constructor_args = self.get_constructor_args(abi)
+            # Get constructor arguments through a dialog
+            constructor_args = self.get_constructor_args_dialog(abi)
 
             estimated_gas = self.contract.constructor(*constructor_args).estimate_gas({
                 'from': self.account.address,
@@ -1598,7 +1645,7 @@ class ContractInterfaceApp:
             ether_cost = self.w3.from_wei(total_cost, 'ether')
 
             proceed = messagebox.askyesno(
-                "Confirm Deployment",
+                "Deployment Confirmation",
                 f"Approximately {ether_cost} ETH will be spent. Continue?"
             )
             if not proceed:
@@ -1664,8 +1711,9 @@ class ContractInterfaceApp:
 
         except Exception as e:
             self.hide_loading_window()
-            self.update_log(f"Error deploying contract: {e}", level='error')
-            messagebox.showerror("Error", f"Error deploying contract: {str(e)}")
+            self.update_log(f"Error during contract deployment: {e}", level='error')
+            messagebox.showerror("Error", f"Error during contract deployment: {str(e)}")
+
 
     def get_constructor_args(self, abi):
         constructor = next((item for item in abi if item.get('type') == 'constructor'), None)
@@ -1676,6 +1724,7 @@ class ContractInterfaceApp:
 
                 args.append(self.parse_input(user_input, param['type']))
         return args
+
 
     def parse_input(self, user_input, param_type):
         try:
@@ -1690,13 +1739,17 @@ class ContractInterfaceApp:
                 return user_input.lower() in ['true', '1', 'yes']
             elif param_type.startswith("bytes") or param_type.startswith("string"):
                 return user_input
+            elif param_type.endswith("[]"):  # Arrays
+                # Example: split values by comma
+                return [self.parse_input(item.strip(), param_type[:-2]) for item in user_input.split(',')]
             else:
-
                 return user_input
         except Exception as e:
             self.update_log(f"Error parsing input: {e}", level='error')
             messagebox.showerror("Input Error", f"Error parsing input: {e}")
             return user_input
+
+
 
     def save_contract(self, name, address, abi, bytecode, contract_code, network, private_key, deployer_address):
         try:
